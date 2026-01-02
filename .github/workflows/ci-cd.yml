@@ -1,0 +1,29 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t apphealth .
+
+      - name: Run container
+        run: |
+          docker run -d --name apphealth-container apphealth
+          sleep 5
+
+      - name: Health check inside container
+        run: |
+          docker exec apphealth-container curl http://localhost:8000/health
+
+      - name: Show container logs (if needed)
+        if: failure()
+        run: docker logs apphealth-container
